@@ -27,22 +27,24 @@
 # Overview
 WildFab proposes a new hybrid query field representation (Neural-UDF + Reg-GWN) to slice models in the wild and enable collision-free motion planning.
 
-<span style="color:yellow">With the proposed computational pipeline, WildFab even supports oriented point clouds as input ☁️ </span>
++ ☁️ With the proposed computational pipeline, WildFab even supports oriented point clouds as input.
++ ☀️ Neural-UDF training does not need point cloud normals, just coordinates.
++ 🌜 There are separate `toy_tests` for Reg-GWN and time-varying Reg-GWN.
 <img src="./md_assets/teaser.jpg" alt="teaser" style="zoom:80%;" />
 
 
 # Guidance 
 Read this 👇🏻 before starting 
 
-+ 👋 Much of the code comes from [INF-3DP](https://github.com/Qjiasheng/INF-3DP); check that repo.
-+ 👋🏻 My previous run logs are available on [Google Drive](https://drive.google.com/drive/folders/1X2Nsz4LVISGAt-QcBHsO8l8oCIFtrEv_?usp=sharing); download them and run `test_**.py` if you want to quickly check the results.
-+ 👋🏽 We don't provide graph-based printing sequence planning here, but it can be adapted from INF-3DP.
++ 👋 Check the similar repo [INF-3DP](https://github.com/Qjiasheng/INF-3DP); 
++ 👋🏻 My previous run logs are available on [Google Drive](https://drive.google.com/drive/folders/1X2Nsz4LVISGAt-QcBHsO8l8oCIFtrEv_?usp=sharing); download them and run `test_**.py` if you want to quickly check the results;
++ 👋🏽 Please refer to [INF-3DP](https://github.com/Qjiasheng/INF-3DP) for graph-based printing sequence planning.
 
 ## Installation
 Installation is similar to that of [INF-3DP](https://github.com/Qjiasheng/INF-3DP), which offers detailed steps.
 
 ### Python environment
-Use Python 3.10–3.12, We use  CUDA 12.1
+Use Python 3.10–3.12, we use CUDA 12.1
 
 ```bash
 git clone https://github.com/Qjiasheng/WildFab.git
@@ -121,7 +123,7 @@ Neural-UDF + Reg-GWN
 </table>
 
 + Collision evaluation and optimization. 
-> ⚠️ Since this project does not provide printing sequence planning, users can plan the printing sequence from the sliced results and prepare waypoint files, then run collision optimization. Download our log data for a quick check in the viewers. 
+> ⚠️ Please refer to [INF-3DP](https://github.com/Qjiasheng/INF-3DP) for graph-based printing sequence planning. Users can plan the printing sequence from the sliced results and prepare waypoint files, then run collision optimization. Download our log data for a quick check in the viewers. 
  <table width="100%">
   <tr>
     <td align="center" valign="top" width="50%">
