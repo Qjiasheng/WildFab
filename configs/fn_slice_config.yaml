@@ -1,0 +1,211 @@
+
+
+klein_config_defaults: &klein_defaults
+  dataset: &klein_dataset_defaults
+    save_path: "logs/fn_slice"
+    point_cloud_path: "udf_data/logs/klein/mesh_data.xyz"
+    mesh_path: "udf_data/logs/klein/mesh_data.obj"
+    infill_surf_path: null   # No infill. can be .obj or .xyz (use wn for infill indication)
+    batch_size: 5000
+    num_batches: 10
+    base_threshold: -0.95
+    downsample: 1
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/klein/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 100
+    epochs_til_ckpt: 10
+    steps_til_summary: 500
+
+
+klein_fn:
+  <<: *klein_defaults
+  dataset:
+    <<: *klein_dataset_defaults
+    # init for fn training
+    init_checkpoint_path: "logs/init_slice/klein_init/checkpoints/model_final.pth"
+    # used for testing
+    slice_checkpoint_path: "logs/fn_slice/klein_fn/checkpoints/model_final.pth"
+  parameters:
+    surf_grad_len: 60.0
+    inside_grad_len: 0.0
+    surf_dir: 60.0
+    base_dir: 0.0
+    veclap: 0.02
+    hessian: 0.0
+
+
+
+
+armadillo_config_defaults: &armadillo_defaults
+  dataset: &armadillo_dataset_defaults
+    save_path: "logs/fn_slice"
+    point_cloud_path: "udf_data/logs/armadillo/mesh_data.xyz"
+    mesh_path: "udf_data/logs/armadillo/mesh_data.obj"
+    infill_surf_path: null   # No infill. can be .obj or .xyz (use wn for infill indication)
+    batch_size: 10000
+    num_batches: 10
+    base_threshold: -0.93
+    downsample: 1
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/armadillo/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 100
+    epochs_til_ckpt: 10
+    steps_til_summary: 500
+
+
+armadillo_fn:
+  <<: *armadillo_defaults
+  dataset:
+    <<: *armadillo_dataset_defaults
+    # init for fn training
+    init_checkpoint_path: "logs/init_slice/armadillo_init/checkpoints/model_final.pth"
+    # used for testing
+    slice_checkpoint_path: "logs/fn_slice/armadillo_fn/checkpoints/model_final.pth"
+  parameters:
+    surf_grad_len: 60.0
+    inside_grad_len: 0.0
+    surf_dir: 80.0
+    base_dir: 0.0
+    veclap: 0.01
+    hessian: 0.0
+
+
+
+fertility_config_defaults: &fertility_defaults
+  dataset: &fertility_dataset_defaults
+    save_path: "logs/fn_slice"
+    point_cloud_path: "udf_data/logs/fertility/mesh_data.xyz"
+    mesh_path: "udf_data/logs/fertility/mesh_data.obj"
+    infill_surf_path: null   # No infill. can be .obj or .xyz (use wn for infill indication)
+    batch_size: 10000
+    num_batches: 10
+    base_threshold: -0.95
+    downsample: 1
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/fertility/checkpoints/model_final.pth"
+
+    # to first get large th pcd w/o these pcd, then retrain with these pcd to improve the fn model
+    # append large layer thickness pcd for next fn training. if needed, has to run test_slice.py first to generate the pcd
+    append_large_th_pcd: True
+    large_th_pcd_index_path: "logs/fn_slice/fertility_fn/large_th_pcd_index.npy"
+    
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 100
+    epochs_til_ckpt: 10
+    steps_til_summary: 500
+
+
+fertility_fn:
+  <<: *fertility_defaults
+  dataset:
+    <<: *fertility_dataset_defaults
+    # init for fn training
+    init_checkpoint_path: "logs/init_slice/fertility_init/checkpoints/model_final.pth"
+    # used for testing
+    slice_checkpoint_path: "logs/fn_slice/fertility_fn/checkpoints/model_final.pth"
+  parameters:
+    surf_grad_len: 40.0
+    inside_grad_len: 0.0
+    surf_dir: 80.0
+    base_dir: 0.0
+    veclap: 0.01
+    hessian: 0.0
+
+
+
+
+shorts_config_defaults: &shorts_defaults
+  dataset: &shorts_dataset_defaults
+    save_path: "logs/fn_slice"
+    point_cloud_path: "udf_data/logs/shorts/mesh_data.xyz"
+    mesh_path: "udf_data/logs/shorts/mesh_data.obj"
+    infill_surf_path: null   # No infill. can be .obj or .xyz (use wn for infill indication)
+    batch_size: 10000
+    num_batches: 10
+    base_threshold: -0.93
+    downsample: 1
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/shorts/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 100
+    epochs_til_ckpt: 10
+    steps_til_summary: 500
+
+
+shorts_fn:
+  <<: *shorts_defaults
+  dataset:
+    <<: *shorts_dataset_defaults
+    # init for fn training
+    init_checkpoint_path: "logs/init_slice/shorts_init/checkpoints/model_final.pth"
+    # used for testing
+    slice_checkpoint_path: "logs/fn_slice/shorts_fn/checkpoints/model_final.pth"
+  parameters:
+    surf_grad_len: 60.0
+    inside_grad_len: 0.0
+    surf_dir: 80.0
+    base_dir: 0.0
+    veclap: 0.01
+    hessian: 0.0
+    bn_loop: 2000
+
+
+
+
+tree_config_defaults: &tree_defaults
+  dataset: &tree_dataset_defaults
+    save_path: "logs/fn_slice"
+    point_cloud_path: "udf_data/logs/tree/mesh_data.xyz"
+    mesh_path: "udf_data/logs/tree/mesh_data.obj"
+    # infill_surf_path: "udf_data/logs/tree/infill.obj"
+    infill_surf_path: null   # No infill.
+    batch_size: 10000
+    num_batches: 10
+    base_threshold: -0.83
+    downsample: 1
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/tree/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 100
+    epochs_til_ckpt: 10
+    steps_til_summary: 500
+
+
+tree_fn:
+  <<: *tree_defaults
+  dataset:
+    <<: *tree_dataset_defaults
+    # init for fn training
+    init_checkpoint_path: "logs/init_slice/tree_init/checkpoints/model_final.pth"
+    # used for testing
+    slice_checkpoint_path: "logs/fn_slice/tree_fn/checkpoints/model_final.pth"
+  parameters:
+    surf_grad_len: 60.0
+    inside_grad_len: 0.0
+    surf_dir: 80.0
+    base_dir: 0.0
+    veclap: 0.01
+    hessian: 0.0
+    bn_loop: 2000    

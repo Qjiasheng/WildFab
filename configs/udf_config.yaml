@@ -1,0 +1,271 @@
+# -------------------------------------------------------- preparation as further init
+height_config_defaults: &height_defaults
+  dataset: &height_dataset
+    save_path: "logs/udf"
+    batch_size: 1000
+    num_batches: 10
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 1000
+    epochs_til_ckpt: 2000                      
+    steps_til_summary: 2000
+
+height:
+  <<: *height_defaults
+
+  dataset:
+    <<: *height_dataset
+    ref_dir: "z"  
+
+  parameters:
+    sdf_pen: 10000.0             
+    normal: 200.0                
+    grad: 50.0                   
+    laplace: 1.0                 
+
+
+xfield:
+  <<: *height_defaults
+
+  dataset:
+    <<: *height_dataset
+    ref_dir: "x"  
+
+  parameters:
+    sdf_pen: 10000.0
+    normal: 200.0
+    grad: 50.0 
+    laplace: 1.0
+
+yfield:
+  <<: *height_defaults
+
+  dataset:
+    <<: *height_dataset
+    ref_dir: "y"  
+
+  parameters:
+    sdf_pen: 10000.0
+    normal: 200.0
+    grad: 50.0 
+    laplace: 1.0
+
+
+# ------------------------------ model applications
+klein_config_defaults: &klein_defaults
+  dataset: &klein_dataset_defaults
+    save_path: "logs/udf"
+    point_cloud_path: "udf_data/logs/klein/mesh_data.xyz"
+    mesh_path: "udf_data/logs/klein/mesh_data.obj"
+    
+    # batch size can be large based on GPU memory, use full surface pts as zero level supervision
+    # can improve the surface level detail, but still smooth
+    # we use wn gradnorm tracing, instead of full size surface pts refinement
+    
+    batch_size: 7000
+    resolution: 256
+    downsample: 1
+    high_feature_ratio: 0.6
+    more_smpl_times: 0
+    
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10000
+    epochs_til_ckpt: 5000
+    steps_til_summary: 5000
+
+
+klein: 
+  <<: *klein_defaults
+  dataset:
+    <<: *klein_dataset_defaults
+    udf_checkpoint_path: "logs/udf/klein/checkpoints/model_final.pth"
+  parameters:
+    diffuse_epoch_portion: 0.2            # scalar heat diffusion portion of total epochs
+    surf_udf: 100000.0                    # zero-level surface
+    bound_normal_ortho: 0.0               # open-boundary neumman constrain
+    eikonal_init: 2000.0                  # eikonal 
+    eikonal_end: 4000.0   
+    smooth_init: 5000.0                   # dirichlet energy 
+    smooth_end: 0.0 
+    
+
+
+armadillo_config_defaults: &armadillo_defaults
+  dataset: &armadillo_dataset_defaults
+    save_path: "logs/udf"
+    point_cloud_path: "udf_data/logs/armadillo/mesh_data.xyz"
+    mesh_path: "udf_data/logs/armadillo/mesh_data.obj"
+
+    batch_size: 10000
+    resolution: 256
+    downsample: 1
+    high_feature_ratio: 0.6
+    more_smpl_times: 0
+    
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10000
+    epochs_til_ckpt: 5000
+    steps_til_summary: 5000
+
+
+armadillo: 
+  <<: *armadillo_defaults
+  dataset:
+    <<: *armadillo_dataset_defaults
+    udf_checkpoint_path: "logs/udf/armadillo/checkpoints/model_final.pth"
+  parameters:
+    diffuse_epoch_portion: 0.2
+    surf_udf: 100000.0    
+    bound_normal_ortho: 0.0               
+    eikonal_init: 2000.0
+    eikonal_end: 4000.0   
+    smooth_init: 5000.0
+    smooth_end: 0.0 
+
+
+shorts_config_defaults: &shorts_defaults
+  dataset: &shorts_dataset_defaults
+    save_path: "logs/udf"
+    point_cloud_path: "udf_data/logs/shorts/mesh_data.xyz"
+    mesh_path: "udf_data/logs/shorts/mesh_data.obj"
+
+    batch_size: 7000
+    resolution: 256
+    downsample: 1
+    high_feature_ratio: 0.6
+    more_smpl_times: 0
+    
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10000
+    epochs_til_ckpt: 5000
+    steps_til_summary: 5000
+
+
+shorts: 
+  <<: *shorts_defaults
+  dataset:
+    <<: *shorts_dataset_defaults
+    udf_checkpoint_path: "logs/udf/shorts/checkpoints/model_final.pth"
+  parameters:
+    diffuse_epoch_portion: 0.2
+    surf_udf: 100000.0    
+    bound_normal_ortho: 500.0               
+    eikonal_init: 2000.0
+    eikonal_end: 4000.0   
+    smooth_init: 5000.0
+    smooth_end: 0.0 
+
+
+
+fertility_config_defaults: &fertility_defaults
+  dataset: &fertility_dataset_defaults
+    save_path: "logs/udf"
+    point_cloud_path: "udf_data/logs/fertility/mesh_data.xyz"
+    mesh_path: "udf_data/logs/fertility/mesh_data.obj"
+
+    batch_size: 10000
+    resolution: 256
+    downsample: 1
+    high_feature_ratio: 0.6
+    more_smpl_times: 0
+    downsample: 2
+    
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10000
+    epochs_til_ckpt: 5000
+    steps_til_summary: 5000
+
+
+fertility: 
+  <<: *fertility_defaults
+  dataset:
+    <<: *fertility_dataset_defaults
+    udf_checkpoint_path: "logs/udf/fertility/checkpoints/model_final.pth"
+  parameters:
+    diffuse_epoch_portion: 0.2
+    surf_udf: 100000.0    
+    bound_normal_ortho: 0.0               
+    eikonal_init: 2000.0
+    eikonal_end: 4000.0   
+    smooth_init: 5000.0
+    smooth_end: 0.0 
+
+
+fertility_pcd_config_defaults: &fertility_pcd_defaults
+  dataset: &fertility_pcd_dataset_defaults
+    save_path: "logs/udf"
+    point_cloud_path: "udf_data/logs/fertility_pcd/mesh_data.xyz"
+
+    batch_size: 10000
+    resolution: 256
+    downsample: 1
+    high_feature_ratio: 0.6
+    more_smpl_times: 0
+    downsample: 2
+    
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10000
+    epochs_til_ckpt: 5000
+    steps_til_summary: 5000
+
+
+fertility_pcd: 
+  <<: *fertility_pcd_defaults
+  dataset:
+    <<: *fertility_pcd_dataset_defaults
+    udf_checkpoint_path: "logs/udf/fertility_pcd/checkpoints/model_final.pth"
+  parameters:
+    diffuse_epoch_portion: 0.2
+    surf_udf: 100000.0    
+    bound_normal_ortho: 0.0               
+    eikonal_init: 2000.0
+    eikonal_end: 4000.0   
+    smooth_init: 5000.0
+    smooth_end: 0.0 
+
+
+
+tree_config_defaults: &tree_defaults
+  dataset: &tree_dataset_defaults
+    save_path: "logs/udf"
+    point_cloud_path: "udf_data/logs/tree/mesh_data.xyz"
+    mesh_path: "udf_data/logs/tree/mesh_data.obj"
+
+    batch_size: 10000
+    resolution: 256
+    downsample: 1
+    high_feature_ratio: 0.6
+    more_smpl_times: 0
+    
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10000
+    epochs_til_ckpt: 5000
+    steps_til_summary: 5000
+
+
+tree: 
+  <<: *tree_defaults
+  dataset:
+    <<: *tree_dataset_defaults
+    udf_checkpoint_path: "logs/udf/tree/checkpoints/model_final.pth"
+  parameters:
+    diffuse_epoch_portion: 0.2
+    surf_udf: 100000.0    
+    bound_normal_ortho: 500.0               
+    eikonal_init: 2000.0
+    eikonal_end: 4000.0   
+    smooth_init: 5000.0
+    smooth_end: 0.0 

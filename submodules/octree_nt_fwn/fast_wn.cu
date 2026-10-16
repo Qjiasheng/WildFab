@@ -1,0 +1,290 @@
+#include <torch/extension.h>
+#include <vector>
+#include <cmath>
+#include "includes/utils.h"
+
+
+
+#define TWO_OVER_SQRT_PI   1.1283791671f
+#define ONE_OVER_SQRT_PI   0.5641895835f
+
+template <typename scalar_t>
+__device__ inline scalar_t dot3(const scalar_t *a, const scalar_t *b)
+{
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+template <typename scalar_t>
+__device__ inline void sub3(const scalar_t *a, const scalar_t *b, scalar_t *out)
+{
+    out[0] = a[0] - b[0];
+    out[1] = a[1] - b[1];
+    out[2] = a[2] - b[2];
+}
+
+template <typename scalar_t>
+__device__ inline void add_grad_contrib(
+    const scalar_t dvec[3],
+    const scalar_t avec[3],
+    const scalar_t area_scale,
+    const scalar_t dist2,
+    const scalar_t s,
+    const scalar_t dphi_dt,
+    const scalar_t inv_delta,
+    scalar_t &field_acc,
+    scalar_t grad_acc[3]
+)
+{
+    const scalar_t dist = sqrt(dist2);
+    const scalar_t dn = area_scale * dot3<scalar_t>(dvec, avec);
+
+    const scalar_t inv_r3_val = scalar_t(1) / (dist2 * dist + scalar_t(1e-20));
+    const scalar_t poisson = dn * inv_r3_val;
+
+    scalar_t ds_dv[3] = {scalar_t(0), scalar_t(0), scalar_t(0)};
+    if (dphi_dt != scalar_t(0))
+    {
+        const scalar_t coeff = dphi_dt * inv_delta / (dist + scalar_t(1e-20));
+        ds_dv[0] = coeff * dvec[0];
+        ds_dv[1] = coeff * dvec[1];
+        ds_dv[2] = coeff * dvec[2];
+    }
+
+    const scalar_t denom = dist2 * dist2 * dist + scalar_t(1e-20);
+
+    scalar_t dp_dv[3];
+    dp_dv[0] = (dist2 * area_scale * avec[0] - scalar_t(3) * dn * dvec[0]) / denom;
+    dp_dv[1] = (dist2 * area_scale * avec[1] - scalar_t(3) * dn * dvec[1]) / denom;
+    dp_dv[2] = (dist2 * area_scale * avec[2] - scalar_t(3) * dn * dvec[2]) / denom;
+
+    field_acc += poisson * s;
+
+    grad_acc[0] += ds_dv[0] * poisson + s * dp_dv[0];
+    grad_acc[1] += ds_dv[1] * poisson + s * dp_dv[1];
+    grad_acc[2] += ds_dv[2] * poisson + s * dp_dv[2];
+}
+
+
+// regularization Poisson kernel
+template <typename scalar_t>
+__device__ inline void eval_window(
+    const scalar_t dist2,
+    const scalar_t inv_delta,
+    scalar_t &s,
+    scalar_t &dphi_dt
+)
+{
+    const scalar_t dist = sqrt(dist2);
+    const scalar_t t = dist * inv_delta;
+    const scalar_t t2 = t * t;
+    const scalar_t exp_term = exp(-t2);
+
+    s = erf(t) - scalar_t(TWO_OVER_SQRT_PI) * t * exp_term;
+    dphi_dt = scalar_t(4) * t2 * scalar_t(ONE_OVER_SQRT_PI) * exp_term;
+}
+
+template <typename scalar_t>
+__global__ void fast_wn_kernel(
+
+    torch::PackedTensorAccessor32<scalar_t,2,torch::RestrictPtrTraits> queries,
+
+    torch::PackedTensorAccessor32<int64_t,2,torch::RestrictPtrTraits> children,
+    torch::PackedTensorAccessor32<scalar_t,2,torch::RestrictPtrTraits> cell_c,
+    torch::PackedTensorAccessor32<scalar_t,1,torch::RestrictPtrTraits> cell_r,
+    torch::PackedTensorAccessor32<scalar_t,2,torch::RestrictPtrTraits> cell_an,
+
+    torch::PackedTensorAccessor32<int64_t,1,torch::RestrictPtrTraits> leaf_offs,
+    torch::PackedTensorAccessor32<int64_t,1,torch::RestrictPtrTraits> leaf_idx,
+
+    torch::PackedTensorAccessor32<scalar_t,2,torch::RestrictPtrTraits> points,
+    torch::PackedTensorAccessor32<scalar_t,2,torch::RestrictPtrTraits> normals,
+    torch::PackedTensorAccessor32<scalar_t,1,torch::RestrictPtrTraits> areas,
+
+    const scalar_t beta,
+    const scalar_t inv_delta,
+    torch::PackedTensorAccessor32<scalar_t,1,torch::RestrictPtrTraits> out_field,
+    torch::PackedTensorAccessor32<scalar_t,2,torch::RestrictPtrTraits> out_grad,
+    torch::PackedTensorAccessor32<bool,1,torch::RestrictPtrTraits> out_near
+)
+{
+    const int m = blockIdx.x * blockDim.x + threadIdx.x;
+    if (m >= queries.size(0)) return;
+
+    const scalar_t r_strict = scalar_t(1) / inv_delta;
+    bool near_flag = false;
+
+    scalar_t q[3] = {
+        queries[m][0],
+        queries[m][1],
+        queries[m][2]
+    };
+
+    int stack[WN_STACK_SIZE];
+    int sp = 0;
+    stack[sp++] = 0;
+
+    scalar_t field_acc = 0;
+    scalar_t grad_acc[3] = {
+        scalar_t(0),
+        scalar_t(0),
+        scalar_t(0)
+    };
+
+    while (sp)
+    {
+        const int n = stack[--sp];
+
+        scalar_t dvec[3];
+        sub3<scalar_t>(&cell_c[n][0], q, dvec);
+
+        const scalar_t dist2 = dot3<scalar_t>(dvec, dvec);
+        const bool far_enough = (cell_r[n] * cell_r[n]) < (beta * beta * dist2);
+
+        if (far_enough)
+        {
+            scalar_t s, dphi_dt;
+            eval_window<scalar_t>(dist2, inv_delta, s, dphi_dt);
+
+            scalar_t an[3] = {
+                cell_an[n][0],
+                cell_an[n][1],
+                cell_an[n][2]
+            };
+
+            add_grad_contrib<scalar_t>(
+                dvec,
+                an,
+                scalar_t(1),
+                dist2,
+                s,
+                dphi_dt,
+                inv_delta,
+                field_acc,
+                grad_acc
+            );
+
+            continue;
+        }
+
+        if (children[n][0] < 0)
+        {
+            const int64_t start = leaf_offs[n];
+            const int64_t end = leaf_offs[n + 1];
+
+            for (int64_t k = start; k < end; ++k)
+            {
+                const int64_t pid = leaf_idx[k];
+
+                sub3<scalar_t>(&points[pid][0], q, dvec);
+
+                scalar_t d2 = dot3<scalar_t>(dvec, dvec) + scalar_t(1e-8);
+
+                scalar_t s, dphi_dt;
+                eval_window<scalar_t>(d2, inv_delta, s, dphi_dt);
+
+                // Near tagging does not gate the smoothing window.
+                if (sqrt(d2) < r_strict) near_flag = true;
+
+                scalar_t nrm[3] = {
+                    normals[pid][0],
+                    normals[pid][1],
+                    normals[pid][2]
+                };
+
+                add_grad_contrib<scalar_t>(
+                    dvec,
+                    nrm,
+                    areas[pid],
+                    d2,
+                    s,
+                    dphi_dt,
+                    inv_delta,
+                    field_acc,
+                    grad_acc
+                );
+            }
+        }
+        else
+        {
+            #pragma unroll
+            for (int oc = 0; oc < 8; ++oc)
+            {
+                int64_t cid = children[n][oc];
+                if (cid >= 0 && sp < WN_STACK_SIZE)
+                    stack[sp++] = static_cast<int>(cid);
+            }
+        }
+    }
+
+    const scalar_t inv4pi = static_cast<scalar_t>(0.07957747154594767);
+
+    out_field[m] = field_acc * inv4pi;
+
+    // paper omits the 1/(4pi) factor for the gradient
+    out_grad[m][0] = grad_acc[0] * inv4pi;
+    out_grad[m][1] = grad_acc[1] * inv4pi;
+    out_grad[m][2] = grad_acc[2] * inv4pi;
+    out_near[m] = near_flag;
+}
+
+std::vector<torch::Tensor> fast_wn_clouds_cu(
+
+    const torch::Tensor& queries,           // (M,3)
+
+    const torch::Tensor& points,            // (P,3)
+    const torch::Tensor& normals,           // (P,3)
+    const torch::Tensor& areas,             // (P)
+
+    const torch::Tensor& leaf_offs,         // (N+1)
+    const torch::Tensor& leaf_idx,          // (#leaf)
+    const torch::Tensor& children,          // (N,8)
+    const torch::Tensor& cell_c,            // (N,3)
+    const torch::Tensor& cell_r,            // (N)
+    const torch::Tensor& cell_an,           // (N,3)
+
+    const float beta,
+    const float inv_delta)
+{
+    TORCH_CHECK(queries.is_cuda(), "queries must be on CUDA device");
+
+    const int64_t M = queries.size(0);
+
+    auto fields = torch::zeros({M},   queries.options());
+    auto grads = torch::zeros({M,3}, queries.options());
+    auto near_tags = torch::zeros({M},   torch::dtype(torch::kBool).device(queries.device()));
+
+    const dim3 threads(256);
+    const dim3 blocks((M + threads.x - 1) / threads.x);
+
+    AT_DISPATCH_FLOATING_TYPES(queries.scalar_type(), "fast_wn_kernel", ([&]
+    {
+        fast_wn_kernel<scalar_t><<<blocks, threads>>>(
+            queries.packed_accessor32<scalar_t,2,torch::RestrictPtrTraits>(),
+
+            children.packed_accessor32<int64_t,2,torch::RestrictPtrTraits>(),
+            cell_c.packed_accessor32<scalar_t,2,torch::RestrictPtrTraits>(),
+            cell_r.packed_accessor32<scalar_t,1,torch::RestrictPtrTraits>(),
+            cell_an.packed_accessor32<scalar_t,2,torch::RestrictPtrTraits>(),
+
+            leaf_offs.packed_accessor32<int64_t,1,torch::RestrictPtrTraits>(),
+            leaf_idx.packed_accessor32<int64_t,1,torch::RestrictPtrTraits>(),
+
+            points.packed_accessor32<scalar_t,2,torch::RestrictPtrTraits>(),
+            normals.packed_accessor32<scalar_t,2,torch::RestrictPtrTraits>(),
+            areas.packed_accessor32<scalar_t,1,torch::RestrictPtrTraits>(),
+
+            static_cast<scalar_t>(beta),
+            static_cast<scalar_t>(inv_delta),
+            fields.packed_accessor32<scalar_t,1,torch::RestrictPtrTraits>(),
+            grads.packed_accessor32<scalar_t,2,torch::RestrictPtrTraits>(),
+            near_tags.packed_accessor32<bool,1,torch::RestrictPtrTraits>()
+        );
+    }));
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess)
+        std::cerr << "CUDA launch failed: " << cudaGetErrorString(err) << '\n';
+    // cudaDeviceSynchronize();
+
+    return {fields, grads, near_tags};
+}

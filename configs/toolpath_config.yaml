@@ -1,0 +1,150 @@
+
+
+klein_config_defaults: &klein_defaults
+  dataset: &klein_dataset_defaults
+    save_path: "logs/toolpath"
+    point_cloud_path: "udf_data/logs/klein/mesh_data.xyz"
+    mesh_path: "udf_data/logs/klein/mesh_data.obj"
+    waypoint_filename: "waypoints.xyz"
+
+    object_scale: 125.0
+    base_threshold: -0.95
+
+    udf_checkpoint_path: "logs/udf/klein/checkpoints/model_final.pth"
+    slice_checkpoint_path: "logs/fn_slice/klein_fn/checkpoints/model_final.pth"
+  optim:
+    model_type: "sine"
+
+
+klein_single_shell:
+  <<: *klein_defaults
+  type: "single_shell"
+  parameters:
+    connect_broken: True
+    resolution: 128
+    slice_num: 300  
+    jump_threshold: 0.04 
+    outer_down_ratio: 3.0 
+    continuous_cnt_lim: 10000
+
+
+
+armadillo_config_defaults: &armadillo_defaults
+  dataset: &armadillo_dataset_defaults
+    save_path: "logs/toolpath"
+    point_cloud_path: "udf_data/logs/armadillo/mesh_data.xyz"
+    mesh_path: "udf_data/logs/armadillo/mesh_data.obj"
+    waypoint_filename: "waypoints.xyz"
+
+    object_scale: 125.0
+    base_threshold: -0.95
+
+    udf_checkpoint_path: "logs/udf/armadillo/checkpoints/model_final.pth"
+    slice_checkpoint_path: "logs/fn_slice/armadillo_fn/checkpoints/model_final.pth"
+  optim:
+    model_type: "sine"
+
+
+armadillo_single_shell:
+  <<: *armadillo_defaults
+  type: "single_shell"
+  parameters:
+    connect_broken: True
+    resolution: 128
+    slice_num: 500  
+    jump_threshold: 0.04 
+    outer_down_ratio: 3.0 
+    continuous_cnt_lim: 10000
+
+
+
+
+fertility_config_defaults: &fertility_defaults
+  dataset: &fertility_dataset_defaults
+    save_path: "logs/toolpath"
+    point_cloud_path: "udf_data/logs/fertility/mesh_data.xyz"
+    mesh_path: "udf_data/logs/fertility/mesh_data.obj"
+    waypoint_filename: "waypoints.xyz"
+
+    object_scale: 125.0
+    base_threshold: -0.95
+
+    udf_checkpoint_path: "logs/udf/fertility/checkpoints/model_final.pth"
+    slice_checkpoint_path: "logs/fn_slice/fertility_fn/checkpoints/model_final.pth"
+  optim:
+    model_type: "sine"
+
+
+fertility_single_shell:
+  <<: *fertility_defaults
+  type: "single_shell"
+  parameters:
+    connect_broken: True
+    resolution: 128
+    slice_num: 500  
+    jump_threshold: 0.04 
+    outer_down_ratio: 3.0 
+    continuous_cnt_lim: 10000    
+
+
+
+
+
+shorts_config_defaults: &shorts_defaults
+  dataset: &shorts_dataset_defaults
+    save_path: "logs/toolpath"
+    point_cloud_path: "udf_data/logs/shorts/mesh_data.xyz"
+    mesh_path: "udf_data/logs/shorts/mesh_data.obj"
+    waypoint_filename: "waypoints.xyz"
+
+    object_scale: 125.0
+    base_threshold: -0.95
+
+    udf_checkpoint_path: "logs/udf/shorts/checkpoints/model_final.pth"
+    slice_checkpoint_path: "logs/fn_slice/shorts_fn/checkpoints/model_final.pth"
+  optim:
+    model_type: "sine"
+
+
+shorts_single_shell:
+  <<: *shorts_defaults
+  type: "single_shell"
+  parameters:
+    connect_broken: False
+    del_broken_segments: False
+    resolution: 128
+    slice_num: 300  
+    jump_threshold: 0.04 
+    outer_down_ratio: 3.0 
+    continuous_cnt_lim: 10000     
+
+
+
+
+
+tree_config_defaults: &tree_defaults
+  dataset: &tree_dataset_defaults
+    save_path: "logs/toolpath"
+    point_cloud_path: "udf_data/logs/tree/mesh_data.xyz"
+    mesh_path: "udf_data/logs/tree/mesh_data.obj"
+    waypoint_filename: "waypoints.xyz"
+
+    object_scale: 200.0
+    base_threshold: -0.85
+
+    udf_checkpoint_path: "logs/udf/tree/checkpoints/model_final.pth"
+    slice_checkpoint_path: "logs/fn_slice/tree_fn/checkpoints/model_final.pth"
+  optim:
+    model_type: "sine"
+
+tree_single_shell:
+  <<: *tree_defaults
+  type: "single_shell"
+  parameters:
+    connect_broken: False
+    del_broken_segments: False
+    resolution: 128
+    slice_num: 300  
+    jump_threshold: 0.04 
+    outer_down_ratio: 3.0 
+    continuous_cnt_lim: 10000               

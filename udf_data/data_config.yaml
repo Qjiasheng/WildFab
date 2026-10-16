@@ -1,0 +1,83 @@
+defaults:
+  out_pcd_fn: mesh_data.xyz
+  out_mesh_fn: mesh_data.obj
+
+  curv_radius: 15                # mesh curvature neighborhood size in k-rings
+  curv_k_neighbors: 60           # PCD curvature: neighboring points for normal-variation fit
+  feature_percent: 0.5           # fraction in [0, 1] of higher curvature points to be selected as feature points
+  scale_range: 1.9               # max dim normalization range for scale normalization. 1.9 --> [-0.95, 0.95]
+  downsample_ratio: 1.0          # fraction in (0, 1] retained before heat computation
+  downsample_seed: 0             # reproducible random downsampling
+
+  enable_bn: true                # bn detection
+  enable_nm: false               # non-manifold edge detection; distinct connected groups get distinct IDs
+  enable_curv: true              # curvature computation for curv values and directions
+  enable_norm: true              # enable normalization into [-1,1] cube
+              
+  visualize: true                
+
+  # enable heat method for pcd to overcome overhang in guidance field training //
+  # -- alternative by bi-harmonic or diffusion distance field gradient
+  # -- less singularities incurred as guidance field gradient alignment 
+  enable_heat: false            
+  source_axis: 2                 # z-axis          
+  source_side: "min"             # min value along source_axis     
+  source_width: 0.02             # inclusive band in normalized units (input units if enable_norm=false)
+  heat_t_coef: 1.0               # positive heat diffusion time coefficient
+  heat_k_neighbors: 20           # neighbors for tangent least-squares heat gradient
+
+
+# -----------------------------------------------------------------------
+# mesh in .obj and pcd in .xyz format are supported
+# exported pcd data in .xyz format. ---- "%.6f " * 15 + "%d " * 4
+# [xyz, nxnynz, curv_dir1, curv_dir2, heat_grad, curv_feature_tag, bn_tag, nm_tag, app_placeholder_tag]
+
+# nm_tag: 0 for regular points; 1, 2, ... for connected non-manifold edge groups.
+# Groups may be closed loops, open chains, or branches; touching groups share an ID.
+# heat_grad: unit tangent distance gradient; zero if disabled or undefined.
+# Input/output paths below are relative to this YAML file.
+# Optional mesh densification: sample_surface: true and ele_edge_len: <normalized spacing>.
+# Visualization includes curvature, normals, tags, heat sources, distances and gradients.
+# -----------------------------------------------------------------------
+
+models_data:
+# input is mesh data 
+  armadillo:
+    enable_heat: true
+    save_path: logs/armadillo
+    mesh_path: models_data/armadillo.obj
+
+  fertility:
+    save_path: logs/fertility
+    mesh_path: models_data/fertility.obj
+
+  shorts:
+    sample_surface: true
+    ele_edge_len: 0.05
+    save_path: logs/shorts
+    mesh_path: models_data/shorts.obj
+
+  klein:
+    enable_bn: false
+    enable_nm: true
+    save_path: logs/klein
+    mesh_path: models_data/klein.obj
+  
+  tree:
+    enable_nm: false
+    save_path: logs/tree
+    mesh_path: models_data/tree.obj
+
+
+# input is pcd data: exactly 6 columns [xyz, nxnynz], with consistently oriented nonzero normals
+# PCD curvature uses normal variation in local tangent planes; no mesh reconstruction.
+# Leave pcd_path blank until data is supplied; --all skips blank entries.
+# boundary loops detection is not provided for pcd data
+# users can use pcd bn detection algorithms and seperate open boundary loops
+
+  fertility_pcd:
+    enable_bn: false
+    enable_nm: false
+    save_path: logs/fertility_pcd
+    pcd_path: models_data/fertility_pcd.xyz
+    

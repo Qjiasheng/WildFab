@@ -1,0 +1,88 @@
+# nozzle for collision
+# example nozzle model, user can replace it with their own nozzle model.
+nozzle_pcd: &nozzle_defaults 
+  nozzle_nodes_path: "udf_data/rect_nozzle/rect_nozzle_xyz_normal.xyz"                
+  nozzle_elems_path: "udf_data/rect_nozzle/rect_nozzle_var.1.ele"              
+  nozzle_mesh_path: "udf_data/rect_nozzle/rect_nozzle.obj"              
+
+
+klein_config_defaults: &klein_defaults
+  dataset: &klein_data_defaults
+    save_path: "logs/collision"
+    udf_checkpoint_path: "logs/udf/klein/checkpoints/model_final.pth"
+    mesh_path: "udf_data/logs/klein/mesh_data.obj"
+
+    base_threshold: -0.90            # sf under base threshold will not be included 
+    batch_size: 10000      
+
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 100
+    epochs_til_ckpt: 10
+    steps_til_summary: 10
+
+
+klein_single_shell:
+  <<: *klein_defaults
+
+  dataset:
+    <<: *klein_data_defaults
+    <<: *nozzle_defaults
+    waypoint_path: "logs/toolpath/klein_single_shell/waypoints.xyz"                
+
+    # for testing
+    collision_checkpoint_path: "logs/collision/klein_single_shell/checkpoints/model_final.pth"
+
+  parameters:
+    down_sample: 1
+    object_scale: 125.0     
+    # loss weights
+    coll: 1.0
+    print_dir_align: 1.0
+    sf: 0.0
+    print_dir_vec: 0.0      # both axes smoothness need to be small to release flexibility 
+    frame_dir_vec: 0.01     # like 0.001
+
+
+
+tree_config_defaults: &tree_defaults
+  dataset: &tree_data_defaults
+    save_path: "logs/collision"
+
+    udf_checkpoint_path: "logs/udf/tree/checkpoints/model_final.pth"
+    infill_surf_path: "udf_data/tree/infill.obj"
+    mesh_path: "udf_data//tree/mesh_data.obj"
+
+    base_threshold: -0.90
+    batch_size: 10000       
+
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 100
+    epochs_til_ckpt: 10
+    steps_til_summary: 10
+
+
+tree_lattice:
+  <<: *tree_defaults
+
+  dataset:
+    <<: *tree_data_defaults
+    <<: *nozzle_defaults
+    waypoint_path: "logs/toolpath/tree_lattice/waypoints.xyz"                
+    # for testing
+    collision_checkpoint_path: "logs/collision/tree_lattice/checkpoints/model_final.pth"
+    resolution: 128
+
+  parameters:
+    down_sample: 1
+    object_scale: 200.0     
+    # loss weights
+    coll: 1.0
+    print_dir_align: 1.0
+    sf: 0.0
+    print_dir_vec: 0.0
+    frame_dir_vec: 0.01
+

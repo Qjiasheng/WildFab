@@ -1,0 +1,230 @@
+klein_config_defaults: &klein_defaults
+  dataset: &klein_dataset_defaults
+    save_path: "logs/init_slice"
+    point_cloud_path: "udf_data/logs/klein/mesh_data.xyz"
+    mesh_path: "udf_data/logs/klein/mesh_data.obj"
+    batch_size: 5000               # can be adjusted based on total pcd number
+    num_batches: 10
+    base_threshold: -0.95
+    downsample: 1
+    height_checkpoint_path: "logs/udf/height/checkpoints/model_final.pth"
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/klein/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10
+    epochs_til_ckpt: 50  
+    steps_til_summary: 50
+
+
+klein_init:
+  <<: *klein_defaults
+  dataset:
+    <<: *klein_dataset_defaults
+    # used for testing
+    slice_checkpoint_path: "logs/init_slice/klein_init/checkpoints/model_final.pth"
+  parameters:
+    use_heat_grad: False
+    grad: 0.0
+    base_grad: 0.0
+    laplace: 0.0001
+    curv_align: 1.0
+    heat_align: 0.0
+    tangent: 3.0  
+
+
+
+armadillo_config_defaults: &armadillo_defaults
+  dataset: &armadillo_dataset_defaults
+    save_path: "logs/init_slice"
+    point_cloud_path: "udf_data/logs/armadillo/mesh_data.xyz"
+    mesh_path: "udf_data/logs/armadillo/mesh_data.obj"
+    batch_size: 10000
+    num_batches: 10
+    base_threshold: -0.93
+    downsample: 1
+    height_checkpoint_path: "logs/udf/height/checkpoints/model_final.pth"
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/armadillo/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10
+    epochs_til_ckpt: 50  
+    steps_til_summary: 50
+
+
+armadillo_init:
+  <<: *armadillo_defaults
+  dataset:
+    <<: *armadillo_dataset_defaults
+    # used for testing
+    slice_checkpoint_path: "logs/init_slice/armadillo_init/checkpoints/model_final.pth"
+  parameters:
+    use_heat_grad: True
+    grad: 0.0
+    base_grad: 0.0
+    laplace: 0.0001
+    curv_align: 0.0
+    heat_align: 1.0
+    tangent: 3.0  
+
+
+
+fertility_config_defaults: &fertility_defaults
+  dataset: &fertility_dataset_defaults
+    save_path: "logs/init_slice"
+    point_cloud_path: "udf_data/logs/fertility/mesh_data.xyz"
+    mesh_path: "udf_data/logs/fertility/mesh_data.obj"
+    batch_size: 10000               
+    num_batches: 10
+    base_threshold: -0.65
+    downsample: 1
+    height_checkpoint_path: "logs/udf/height/checkpoints/model_final.pth"
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/fertility/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10
+    epochs_til_ckpt: 50  
+    steps_til_summary: 50
+
+
+fertility_init:
+  <<: *fertility_defaults
+  dataset:
+    <<: *fertility_dataset_defaults
+    # used for testing
+    slice_checkpoint_path: "logs/init_slice/fertility_init/checkpoints/model_final.pth"
+  parameters:
+    use_heat_grad: False
+    grad: 0.0
+    base_grad: 0.0
+    laplace: 0.0002
+    curv_align: 1.0
+    heat_align: 0.0
+    tangent: 3.0      
+
+
+
+shorts_config_defaults: &shorts_defaults
+  dataset: &shorts_dataset_defaults
+    save_path: "logs/init_slice"
+    point_cloud_path: "udf_data/logs/shorts/mesh_data.xyz"
+    mesh_path: "udf_data/logs/shorts/mesh_data.obj"
+    batch_size: 5000               # can be adjusted based on total pcd number
+    num_batches: 10
+    base_threshold: -0.84
+    downsample: 1
+    height_checkpoint_path: "logs/udf/height/checkpoints/model_final.pth"
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/shorts/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10
+    epochs_til_ckpt: 50  
+    steps_til_summary: 50
+
+
+shorts_init:
+  <<: *shorts_defaults
+  dataset:
+    <<: *shorts_dataset_defaults
+    # used for testing
+    slice_checkpoint_path: "logs/init_slice/shorts_init/checkpoints/model_final.pth"
+  parameters:
+    use_heat_grad: False
+    grad: 0.0
+    base_grad: 0.0
+    laplace: 0.0001
+    curv_align: 1.0
+    heat_align: 0.0
+    tangent: 3.0  
+
+
+fertility_pcd_config_defaults: &fertility_pcd_defaults
+  dataset: &fertility_pcd_dataset_defaults
+    save_path: "logs/init_slice"
+    point_cloud_path: "udf_data/logs/fertility_pcd/mesh_data.xyz"
+    mesh_path: "udf_data/logs/fertility/mesh_data.obj"
+    batch_size: 10000               
+    num_batches: 10
+    base_threshold: -0.65
+    downsample: 1
+    height_checkpoint_path: "logs/udf/height/checkpoints/model_final.pth"
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/fertility_pcd/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10
+    epochs_til_ckpt: 50  
+    steps_til_summary: 50
+
+
+fertility_pcd_init:
+  <<: *fertility_pcd_defaults
+  dataset:
+    <<: *fertility_pcd_dataset_defaults
+    # used for testing
+    slice_checkpoint_path: "logs/init_slice/fertility_pcd_init/checkpoints/model_final.pth"
+  parameters:
+    use_heat_grad: False
+    grad: 0.0
+    base_grad: 0.0
+    laplace: 0.0005
+    curv_align: 2.0
+    heat_align: 0.0
+    tangent: 3.0      
+
+
+
+tree_config_defaults: &tree_defaults
+  dataset: &tree_dataset_defaults
+    save_path: "logs/init_slice"
+    point_cloud_path: "udf_data/logs/tree/mesh_data.xyz"
+    mesh_path: "udf_data/logs/tree/mesh_data.obj"
+    batch_size: 10000               # can be adjusted based on total pcd number
+    num_batches: 10
+    base_threshold: -0.83
+    downsample: 1
+    height_checkpoint_path: "logs/udf/height/checkpoints/model_final.pth"
+
+    # used for testing
+    udf_checkpoint_path: "logs/udf/tree/checkpoints/model_final.pth"
+    resolution: 256
+  optim:
+    model_type: "sine"
+    lr: 0.0001
+    num_epochs: 10
+    epochs_til_ckpt: 50  
+    steps_til_summary: 50
+
+
+tree_init:
+  <<: *tree_defaults
+  dataset:
+    <<: *tree_dataset_defaults
+    # used for testing
+    slice_checkpoint_path: "logs/init_slice/tree_init/checkpoints/model_final.pth"
+  parameters:
+    use_heat_grad: False
+    grad: 0.0
+    base_grad: 0.0
+    laplace: 0.0001
+    curv_align: 1.0
+    heat_align: 0.0
+    tangent: 3.0  
