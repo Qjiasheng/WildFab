@@ -35,7 +35,7 @@ WildFab proposes a new hybrid query field representation (Neural-UDF + Reg-GWN) 
 Read this 👇🏻 before starting 
 
 + 👋 Much of the code comes from [INF-3DP](https://github.com/Qjiasheng/INF-3DP); check that repo.
-+ 👋🏻 My previous run logs are available on [Google Drive](); download them and run `test_**.py` if you want to quickly check the results.
++ 👋🏻 My previous run logs are available on [Google Drive](https://drive.google.com/drive/folders/1X2Nsz4LVISGAt-QcBHsO8l8oCIFtrEv_?usp=sharing); download them and run `test_**.py` if you want to quickly check the results.
 + 👋🏽 We don't provide graph-based printing sequence planning here, but it can be adapted from INF-3DP.
 
 ## Installation
