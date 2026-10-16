@@ -27,9 +27,7 @@
 # Overview
 WildFab proposes a new hybrid query field representation (Neural-UDF + Reg-GWN) to slice models in the wild and enable collision-free motion planning.
 
-+ ☁️ With the proposed computational pipeline, WildFab even supports oriented point clouds as input.
-+ ☀️ Neural-UDF training does not need point cloud normals, just coordinates.
-+ 🌜 There are separate `toy_tests` for Reg-GWN and time-varying Reg-GWN.
+☁️ With the proposed computational pipeline, WildFab even supports oriented point clouds as input.
 <img src="./md_assets/teaser.jpg" alt="teaser" style="zoom:80%;" />
 
 
